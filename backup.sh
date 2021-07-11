@@ -12,6 +12,7 @@ get_uuid()
 
 [ -z "$BACKUP_SOURCE_LOCATION" ] && BACKUP_SOURCE_LOCATION="/source"
 [ -z "$BACKUP_DESTINATION_LOCATION" ] && BACKUP_DESTINATION_LOCATION="/destination"
+[ -z "$BACKUP_COMPRESSION_METHOD" ] && BACKUP_COMPRESSION_METHOD="zstd"
 [ -z "$BACKUP_KEEP_RULES" ] && BACKUP_KEEP_RULES='[]'
 
 database_location="$BACKUP_DESTINATION_LOCATION/database.json"
@@ -412,8 +413,17 @@ backup()
 	done
 
 	echo "Creating..."
-	local backup_name="backup-${create_time_formated}.tzst"
-	(create_snapshot zstd "$backup_name") || return 1
+	if [ "$BACKUP_COMPRESSION_METHOD" == "gzip" ]; then
+		local backup_name="backup-${create_time_formated}.tgz"
+	elif [ "$BACKUP_COMPRESSION_METHOD" == "zstd" ]; then
+		local backup_name="backup-${create_time_formated}.tzst"
+	elif [ "$BACKUP_COMPRESSION_METHOD" == "plain" ]; then
+		local backup_name="backup-${create_time_formated}.tar"
+	else
+		echo "E: Invalid comporession method" >&2
+		return 2
+	fi
+	(create_snapshot "$BACKUP_COMPRESSION_METHOD" "$backup_name") || return 1
 
 	echo "Registing..."
 	dbg_echo "ID: $id"
