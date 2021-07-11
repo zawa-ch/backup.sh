@@ -53,8 +53,15 @@ database_location="$BACKUP_DESTINATION_LOCATION/$BACKUP_DB_FILENAME"
 #	データベースが破損している場合はここで初期化される
 init()
 {
+	{ [ -z "$BACKUP_SOURCE_LOCATION" ] || [ -z "$BACKUP_DESTINATION_LOCATION" ] || [ -z "$BACKUP_DB_FILENAME" ] || [ -z "$BACKUP_COMPRESSION_METHOD" ] || [ -z "$BACKUP_KEEP_RULES" ]; } && {
+		echo "E: Configuration error" >&2
+		return 2
+	}
 	if ! [ -d "$BACKUP_DESTINATION_LOCATION" ]; then
-		mkdir -p "$BACKUP_DESTINATION_LOCATION"
+		mkdir -p "$BACKUP_DESTINATION_LOCATION" || {
+			echo "E: Can't create directory $BACKUP_DESTINATION_LOCATION" >&2
+			return 2
+		}
 	fi
 	if ! [ -f "$database_location" ]; then
 		echo "Initializing..."
@@ -481,6 +488,6 @@ update()
 	}
 }
 
-init
+init || exit
 backup || exit
 update || exit
