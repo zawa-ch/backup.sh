@@ -10,12 +10,42 @@ get_uuid()
 	cat /proc/sys/kernel/random/uuid
 }
 
+
+#	---- 設定項目 ----
+#	ここで環境変数に何も指定されていなかった場合のデフォルトの挙動を定義する
+#	基本的にはここを変更するの**ではなく**、環境変数を設定してこのスクリプトを実行することを推奨する
+
+#	スナップショットのソースディレクトリ
+#	このディレクトリの中に存在するすべての項目に対してスナップショットが作成される
+#	必ず絶対パスで指定すること
+#	ここで指定したパスが存在しない場合、このスクリプトはスナップショットを作成できない
 [ -z "$BACKUP_SOURCE_LOCATION" ] && BACKUP_SOURCE_LOCATION="/source"
+
+#	スナップショットの保管ディレクトリ
+#	このディレクトリの中に作成したスナップショットを保管し、管理する
+#	必ず絶対パスで指定すること
+#	ここで指定したパスが存在しない場合、自動的にディレクトリが作成される
 [ -z "$BACKUP_DESTINATION_LOCATION" ] && BACKUP_DESTINATION_LOCATION="/destination"
+
+#	データベースファイルの名前
+#	BACKUP_DESTINATION_LOCATION で指定した管理ディレクトリに配置されるデータベースファイルの名前を指定する
+[ -z "$BACKUP_DB_FILENAME" ] && BACKUP_DB_FILENAME="database.json"
+
+#	スナップショットの圧縮方式
+#	ここで指定した方式でスナップショットが圧縮され、保管される
+#	有効な設定は "plain"(無圧縮), "gzip"(GNU gzip), "zstd"(Z Standard)
 [ -z "$BACKUP_COMPRESSION_METHOD" ] && BACKUP_COMPRESSION_METHOD="zstd"
+
+#	スナップショット管理ルール
+#	作成したスナップショットはここで指定したルールに従って管理される
+#	ルールはJSONの特定の構造を持ったオブジェクトの配列で記述する
+#	空のJSON配列を渡すことでルールベースの管理を無効化し、全エントリを保管するようになる
 [ -z "$BACKUP_KEEP_RULES" ] && BACKUP_KEEP_RULES='[]'
 
-database_location="$BACKUP_DESTINATION_LOCATION/database.json"
+#	---- 設定項目ここまで ----
+
+
+database_location="$BACKUP_DESTINATION_LOCATION/$BACKUP_DB_FILENAME"
 
 #	初期化処理
 #
