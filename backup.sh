@@ -362,6 +362,10 @@ update_keeplist()
 	{
 		local latest_id
 		latest_id="$(get_latest)"
+		[ "$latest_id" == "null" ] && {
+			dbg_echo "Latest tag not found. skip"
+			return
+		}
 		[ "$(echo "$data" | jq -r 'map(select(. == "'"$latest_id"'")) | length | . != 0')" == "true" ] && {
 			dbg_echo "$latest_id already added. skip"
 			return
