@@ -1,0 +1,15 @@
+FROM alpine:latest
+
+RUN apk add bash
+RUN apk add zstd
+RUN apk add jq
+
+RUN mkdir -p /usr/share/backup && chmod 755 /usr/share/backup
+ADD https://github.com/zawa-ch/backup.sh/raw/master/backup.sh /usr/share/backup/backup.sh
+RUN chmod 755 /usr/share/backup/backup.sh
+RUN ln -s /usr/share/backup/backup.sh /usr/bin/backup
+COPY cron.txt /cron.txt
+RUN crontab /cron.txt && rm /cron.txt
+COPY startup.sh /startup.sh
+
+CMD [ "/bin/bash", "/startup.sh" ]
